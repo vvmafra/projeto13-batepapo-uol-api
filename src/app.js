@@ -44,14 +44,18 @@ app.post("/participants", (req, res) => {
                         })
                         res.sendStatus(201)
                     })
-                    .catch((err) => console.log(err.message))
+                    .catch((err) => res.status(422).send(err.message))
             }
         })
-        .catch(err => res.status(422).send(err.message))
+        .catch(err => res.status(500).send(err.message))
     
     
 })
 
+
+app.get("/participants", (req, res) => {
+
+})
 
 
 
