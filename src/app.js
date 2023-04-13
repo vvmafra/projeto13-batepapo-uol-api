@@ -47,7 +47,7 @@ app.post("/participants", (req, res) => {
                     .catch((err) => console.log(err.message))
             }
         })
-        .catch(err => res.status(500).send(err.message))
+        .catch(err => res.status(422).send(err.message))
     
     
 })
