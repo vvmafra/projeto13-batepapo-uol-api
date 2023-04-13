@@ -26,6 +26,10 @@ mongoClient.connect()
 app.post("/participants", (req, res) => {
     const { name } = req.body
 
+    if (!name) {
+        return res.sendStatus(422)
+    }
+
     const newUser = { name, lastStatus: Date.now() }
 
     db.collection("participants").findOne({name: name})
@@ -57,6 +61,10 @@ app.get("/participants", (req, res) => {
     db.collection("participants").find().toArray()
         .then(participants => res.send(participants))
         .catch(err => res.status(500).send(err.message))
+})
+
+app.post("/messages", (req, res) => {
+    const {to, text, type} = req.body 
 })
 
 
