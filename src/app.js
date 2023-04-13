@@ -54,7 +54,9 @@ app.post("/participants", (req, res) => {
 
 
 app.get("/participants", (req, res) => {
-
+    db.collection("participants").find().toArray()
+        .then(participants => res.send(participants))
+        .catch(err => res.status(500).send(err.message))
 })
 
 
