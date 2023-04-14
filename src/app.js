@@ -84,11 +84,19 @@ app.post("/messages", async (req, res) => {
 
 app.get("/messages", async(req, res) => {
     const { user } = req.headers
+    const limit = Number(req.query.limit)
 
     try {
-        const viewMessages = await db.collection("messages").find( {$or : [ {to: "Todos"}, {to: user}, {from: user}]} ).toArray()
-        res.send(viewMessages)
-    } catch (err) { return res.sendStatus(422) }
+        const viewMessages = await db.collection("messages")
+        .find( 
+            {$or : [ {to: "Todos"}, {to: user}, {from: user}]} ).toArray()
+
+        if (isNaN(limit)) {
+            return res.sendStatus(422)
+        } else {
+            const showMessages = viewMessages.slice(-limit).reverse()
+            res.status(200).send(showMessages)
+    }} catch (err) { return res.sendStatus(422) }
 
 })
 
