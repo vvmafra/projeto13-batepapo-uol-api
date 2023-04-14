@@ -24,7 +24,7 @@ try {
   }
   const db = mongoClient.db();
 
-app.post("/participants", async(req, res) => {
+app.post("/participants", async (req, res) => {
     const { name } = req.body
 
     if (!name) {
@@ -46,7 +46,7 @@ app.post("/participants", async(req, res) => {
                 to: 'Todos', 
                 text: 'entra na sala...', 
                 type: 'status', 
-                time: dayjs().format("HH:mm:ss")
+                time: dayjs(Date.now()).format("HH:mm:ss")
             })
             res.sendStatus(201)
         }
@@ -60,8 +60,26 @@ app.get("/participants", (req, res) => {
         .catch(err => res.status(500).send(err.message))
 })
 
-app.post("/messages", (req, res) => {
+app.post("/messages", async (req, res) => {
     const {to, text, type} = req.body 
+    const { user } = req.headers
+
+    try {
+    //     const userCreated = await db.collection("participants").findOne({ user: user })
+    //  if (!to || !text || type !== "message" || type !== "private_message" || !userCreated) {
+    //      return res.sendStatus(422)
+    // } else {
+        await db.collection("messages").insertOne({
+            from: user, 
+            to, 
+            text, 
+            type, 
+            time: dayjs(Date.now()).format("HH:mm:ss")
+        })
+        return res.sendStatus(201)
+    } //}
+    catch (err) { return res.sendStatus(422) }
+
 })
 
 
