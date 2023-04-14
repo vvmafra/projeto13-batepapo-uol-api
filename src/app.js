@@ -25,16 +25,19 @@ try {
   const db = mongoClient.db();
 
 app.post("/participants", async (req, res) => {
+
     const { name } = req.body
-
-    if (!name) {
-        return res.sendStatus(422)
-    }
-
     const newUser = { name, lastStatus: Date.now() }
 
-    try {
+        const nameSchema = joi.object({
+            name: joi.string().required()})
+        const validation = nameSchema.validate(req.body)
 
+        if (validation.error) {
+            return res.sendStatus(422)
+        }
+
+    try {
         const data =  await db.collection("participants").findOne({name: name})
 
         if (data) {
@@ -53,7 +56,6 @@ app.post("/participants", async (req, res) => {
     } catch (err) { res.status(500).send(err.message) }
 })
 
-
 app.get("/participants", (req, res) => {
     db.collection("participants").find().toArray()
         .then(participants => res.send(participants))
@@ -64,11 +66,22 @@ app.post("/messages", async (req, res) => {
     const {to, text, type} = req.body 
     const { user } = req.headers
 
+    const messageSchema = joi.object({
+        to: joi.string().min(1).required(),
+        text: joi.string().min(1).required(),
+        type: joi.string().required().valid("private_message", "message"),
+    })
+    const validation = messageSchema.validate(req.body)
+
+    if (validation.error) {
+        return res.sendStatus(422)
+    }
+
     try {
-    //     const userCreated = await db.collection("participants").findOne({ user: user })
-    //  if (!to || !text || type !== "message" || type !== "private_message" || !userCreated) {
-    //      return res.sendStatus(422)
-    // } else {
+         const userCreated = await db.collection("participants").findOne({ user: user })
+      if (!userCreated) {
+          return res.sendStatus(422)
+     } else {
         await db.collection("messages").insertOne({
             from: user, 
             to, 
@@ -77,7 +90,7 @@ app.post("/messages", async (req, res) => {
             time: dayjs(Date.now()).format("HH:mm:ss")
         })
         return res.sendStatus(201)
-    } //}
+    } }
     catch { return res.sendStatus(422) }
 
 })
@@ -111,14 +124,17 @@ app.post("/status", async (req, res) => {
         if (!includeParticipant) {
             return res.sendStatus(404)
         } else {
-        const chuck = await db.collection("participants").updateOne(
+            await db.collection("participants").updateOne(
             { name: user }, { $set: { lastStatus: Date.now() } });  
         return res.sendStatus(200)
         }
-    } catch { return res.sendStatus(422)}
+    } catch { return res.sendStatus(404)}
 
 })
 
+async function removeParticipants() {
+    
+}
 
 
 
