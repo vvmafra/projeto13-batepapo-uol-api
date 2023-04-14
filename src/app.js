@@ -15,15 +15,16 @@ app.use(express.json())
 dotenv.config()
 
 // DataBase Connection
-let db
 const mongoClient = new MongoClient(process.env.DATABASE_URL)
 
-mongoClient.connect()
-    .then(() => db = mongoClient.db())
-    .catch((err) => console.log(err.message))
+try {
+    await mongoClient.connect()
+  } catch (err) {
+    console.log(err.message)
+  }
+  const db = mongoClient.db();
 
-
-app.post("/participants", (req, res) => {
+app.post("/participants", async(req, res) => {
     const { name } = req.body
 
     if (!name) {
@@ -32,28 +33,24 @@ app.post("/participants", (req, res) => {
 
     const newUser = { name, lastStatus: Date.now() }
 
-    db.collection("participants").findOne({name: name})
-        .then((data) => {
-            if (data) {
-            return res.status(409).send("Participant already registered") 
-            } else {
-                db.collection("participants").insertOne(newUser)
-                    .then(() => {
-                        db.collection("messages").insertOne({
-                            from: name, 
-                            to: 'Todos', 
-                            text: 'entra na sala...', 
-                            type: 'status', 
-                            time: dayjs().format("HH:mm:ss")
-                        })
-                        res.sendStatus(201)
-                    })
-                    .catch((err) => res.status(422).send(err.message))
-            }
-        })
-        .catch(err => res.status(500).send(err.message))
-    
-    
+    try {
+
+        const data =  await db.collection("participants").findOne({name: name})
+
+        if (data) {
+            return res.status(409).send("Participant already registered")
+        } else {
+            await db.collection("participants").insertOne(newUser)
+            await db.collection("messages").insertOne({
+                from: name, 
+                to: 'Todos', 
+                text: 'entra na sala...', 
+                type: 'status', 
+                time: dayjs().format("HH:mm:ss")
+            })
+            res.sendStatus(201)
+        }
+    } catch (err) { res.status(500).send(err.message) }
 })
 
 
