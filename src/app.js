@@ -78,7 +78,7 @@ app.post("/messages", async (req, res) => {
         })
         return res.sendStatus(201)
     } //}
-    catch (err) { return res.sendStatus(422) }
+    catch { return res.sendStatus(422) }
 
 })
 
@@ -91,15 +91,33 @@ app.get("/messages", async(req, res) => {
         .find( 
             {$or : [ {to: "Todos"}, {to: user}, {from: user}]} ).toArray()
 
-        if (isNaN(limit)) {
+        if (isNaN(limit) || limit <= 0) {
             return res.sendStatus(422)
+
         } else {
             const showMessages = viewMessages.slice(-limit).reverse()
             res.status(200).send(showMessages)
-    }} catch (err) { return res.sendStatus(422) }
 
+    }} catch { return res.sendStatus(422) }
 })
 
+app.post("/status", async (req, res) => {
+    const { user } = req.headers
+
+    try {
+        const includeParticipant = await db
+        .collection("participants").findOne({ name: user });
+
+        if (!includeParticipant) {
+            return res.sendStatus(404)
+        } else {
+        const chuck = await db.collection("participants").updateOne(
+            { name: user }, { $set: { lastStatus: Date.now() } });  
+        return res.sendStatus(200)
+        }
+    } catch { return res.sendStatus(422)}
+
+})
 
 
 
