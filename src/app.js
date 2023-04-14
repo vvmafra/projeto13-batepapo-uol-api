@@ -82,6 +82,16 @@ app.post("/messages", async (req, res) => {
 
 })
 
+app.get("/messages", async(req, res) => {
+    const { user } = req.headers
+
+    try {
+        const viewMessages = await db.collection("messages").find( {$or : [ {to: "Todos"}, {to: user}, {from: user}]} ).toArray()
+        res.send(viewMessages)
+    } catch (err) { return res.sendStatus(422) }
+
+})
+
 
 
 
