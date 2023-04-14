@@ -72,15 +72,11 @@ app.post("/messages", async (req, res) => {
         type: joi.string().required().valid("private_message", "message"),
     })
     const validation = messageSchema.validate(req.body)
+    const userCreated = await db.collection("participants").findOne({ user: user })
 
-    if (validation.error) {
+    if (validation.error || !userCreated) {
         return res.sendStatus(422)
     }
-
-    const userCreated = await db.collection("participants").findOne({ user: user })
-      if (!userCreated) {
-          return res.sendStatus(422)
-     } 
 
     try {
          
