@@ -133,10 +133,31 @@ app.post("/status", async (req, res) => {
 
 })
 
+    async function removeParticipants() {
+        try {
+            const checkParticipants = await db.collection("participants").find( {lastStatus: {$lt: Date.now() - 10000}}).toArray()
+            checkParticipants.forEach(async ({name}) => {
 
-async function removeParticipants() {
+                const exitMessage = {
+                    from: name,
+                    to: "Todos",
+                    type: "status",
+                    text: "sai da sala...",
+                    time: dayjs(Date.now()).format("HH:mm:ss")
+                }
+            
+            const deleteUser = await db.collection("participants").deleteOne({name: name})
+            await db.collection("messages").insertOne(exitMessage)
+            })
+        } catch (err) { res.status(500).send(err.message) }
+
+        
+    }
     
-}
+
+
+    setInterval(removeParticipants, 15000)
+
 
 
 
