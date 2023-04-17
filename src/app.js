@@ -72,13 +72,16 @@ app.post("/messages", async (req, res) => {
         type: joi.string().required().valid("private_message", "message"),
     })
     const validation = messageSchema.validate(req.body)
-    // const userCreated = await db.collection("participants").findOne({ user: user })
-
-    if (validation.error ) { //|| !userCreated
+    if (validation.error) { 
         return res.sendStatus(422)
     }
 
     try {
+        const userCreated = await db.collection("participants").findOne({ name: user })
+        if(!userCreated) {
+            return res.sendStatus(422)
+        }
+
          
         await db.collection("messages").insertOne({
             from: user, 
@@ -129,6 +132,7 @@ app.post("/status", async (req, res) => {
     } catch { return res.sendStatus(404)}
 
 })
+
 
 async function removeParticipants() {
     
